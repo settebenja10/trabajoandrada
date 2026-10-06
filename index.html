@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ayuda | RustEze Vehicle Manager</title>
+    <!-- Iconos FontAwesome y Fuentes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- COLORES OFICIALES RUSTEZE --- */
+        :root {
+            --rojo-rusteze: #B30E0E;
+            --negro-rusteze: #000000;
+            --amarillo-rusteze: #FFCC00;
+            --gris-oscuro: #1E1E1E;
+            --blanco: #FFFFFF;
+            --texto-secundario: #A0A0A0;
+            --fondo-degradado: linear-gradient(180deg, #000000 0%, #000000 40%, #5a0000 100%);
+        }
+
+        /* --- RESET Y BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+        body { background: var(--fondo-degradado); background-attachment: fixed; color: var(--blanco); line-height: 1.6; min-height: 100vh; }
+        a { text-decoration: none; color: inherit; cursor: pointer; }
+        ul { list-style: none; }
+
+        /* --- HEADER --- */
+        header {
+            background-color: rgba(30, 30, 30, 0.95);
+            padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--rojo-rusteze);
+            position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px);
+        }
+        .logo-container { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; cursor: pointer; }
+        .logo-container i { color: var(--amarillo-rusteze); font-size: 20px; margin-bottom: 5px; }
+        .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; }
+        .logo-text .rust { color: #E0E0E0; }
+        .logo-text .eze { color: var(--rojo-rusteze); }
+        .logo-subtitle { font-size: 9px; color: var(--texto-secundario); letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
+
+        .btn-primario {
+            background: linear-gradient(180deg, #d31010 0%, #8b0000 100%); color: var(--blanco);
+            padding: 10px 25px; border-radius: 6px; font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+            letter-spacing: 1px; border: 1px solid #ff1a1a40; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-primario:hover { box-shadow: 0 0 15px rgba(179, 14, 14, 0.6); transform: scale(1.02); }
+
+        /* --- SISTEMA DE VISTAS (SPA) --- */
+        .view { display: none; animation: fadeIn 0.4s ease; padding-bottom: 50px; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- HERO Y BUSCADOR --- */
+        .hero { text-align: center; padding: 60px 5% 40px; }
+        .hero h2 { font-size: 38px; font-weight: 700; margin-bottom: 10px; }
+        .hero p { color: var(--texto-secundario); font-size: 18px; margin-bottom: 40px; max-width: 700px; margin-left: auto; margin-right: auto; }
+        
+        .search-container { max-width: 650px; margin: 0 auto; position: relative; }
+        .search-container input {
+            width: 100%; padding: 20px 20px 20px 55px; font-size: 18px;
+            border: 2px solid var(--gris-oscuro); border-radius: 10px;
+            background-color: var(--gris-oscuro); color: var(--blanco); outline: none; transition: all 0.3s ease;
+        }
+        .search-container input:focus { border-color: var(--rojo-rusteze); box-shadow: 0 0 15px rgba(179, 14, 14, 0.3); }
+        .search-container > i { position: absolute; left: 22px; top: 22px; color: var(--texto-secundario); font-size: 22px; }
+
+        .search-results {
+            position: absolute; top: 100%; left: 0; right: 0; background-color: var(--gris-oscuro);
+            border-radius: 8px; margin-top: 10px; border: 1px solid #333; display: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8); z-index: 10; overflow: hidden; text-align: left;
+        }
+        .search-item { padding: 15px 20px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 15px; }
+        .search-item:hover { background-color: #2a2a2a; }
+        .search-item i { color: var(--amarillo-rusteze); font-size: 18px; }
+        .search-item strong { display: block; color: var(--blanco); font-size: 16px; }
+        .search-item span { color: var(--texto-secundario); font-size: 13px; }
+
+        /* --- TARJETAS (INICIO) --- */
+        .section-container { padding: 20px 5%; max-width: 1200px; margin: 0 auto; }
+        .grid-categorias { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+        .card {
+            background-color: var(--gris-oscuro); padding: 25px; border-radius: 10px; border: 1px solid #2a2a2a;
+            transition: all 0.3s ease; cursor: pointer; display: block;
+        }
+        .card:hover { border-color: var(--rojo-rusteze); transform: translateY(-5px); box-shadow: 0 8px 25px rgba(179, 14, 14, 0.25); }
+        .card i { font-size: 28px; color: var(--amarillo-rusteze); margin-bottom: 15px; display: block; }
+        .card h3 { font-size: 18px; margin-bottom: 8px; color: var(--blanco); }
+        .card p { color: var(--texto-secundario); font-size: 14px; font-weight: 300; }
+
+        /* --- ESTILOS DE PÁGINAS INTERNAS --- */
+        .page-header { text-align: center; padding: 40px 20px; border-bottom: 1px solid #2a2a2a; margin-bottom: 40px; }
+        .page-header h2 { font-size: 32px; color: var(--blanco); letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        .page-header p { color: var(--amarillo-rusteze); font-size: 18px; }
+
+        .guia-box { background-color: var(--gris-oscuro); padding: 35px; border-radius: 10px; border: 1px solid #2a2a2a; margin-bottom: 30px; }
+        .guia-box h3 { color: var(--blanco); font-size: 22px; margin-bottom: 20px; border-left: 4px solid var(--rojo-rusteze); padding-left: 15px; }
+        
+        .bullet-list { padding-left: 20px; }
+        .bullet-list li { margin-bottom: 10px; position: relative; padding-left: 25px; color: var(--texto-secundario); font-size: 16px; }
+        .bullet-list li::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; left: 0; color: var(--amarillo-rusteze); }
+
+        .pasos-lista { list-style: none; margin-top: 20px; }
+        .pasos-lista li { padding: 12px 20px; margin-bottom: 10px; background-color: #262626; border-radius: 6px; color: var(--texto-secundario); border-left: 3px solid transparent; }
+        .pasos-lista li strong { color: var(--blanco); margin-right: 5px; }
+        .pasos-lista li:hover { border-left: 3px solid var(--rojo-rusteze); }
+
+        .info-box { background-color: #262626; padding: 20px; border-radius: 8px; margin-top: 25px; border: 1px dashed #444; color: var(--texto-secundario); font-size: 15px; }
+        .info-box strong { color: var(--amarillo-rusteze); font-size: 16px;}
+        .info-box.alert strong { color: var(--rojo-rusteze); }
+
+        .btn-volver {
+            background-color: transparent; color: var(--texto-secundario); border: 1px solid #444;
+            padding: 12px 25px; border-radius: 6px; font-size: 16px; cursor: pointer; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 20px; font-weight: bold;
+        }
+        .btn-volver:hover { background-color: var(--gris-oscuro); color: var(--blanco); border-color: var(--blanco); }
+
+        /* --- ESTILOS FAQ --- */
+        .faq-category-title { font-size: 22px; color: var(--amarillo-rusteze); margin: 40px 0 20px 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .faq-item { background-color: var(--gris-oscuro); margin-bottom: 15px; border-radius: 8px; border: 1px solid #2a2a2a; overflow: hidden; }
+        .faq-pregunta { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; transition: background 0.3s; }
+        .faq-pregunta:hover { background-color: #262626; }
+        .faq-respuesta { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; color: var(--texto-secundario); font-weight: 300; line-height: 1.6; }
+        .faq-item.active .faq-respuesta { padding: 0 20px 20px 20px; max-height: 500px; }
+        .faq-item.active .faq-pregunta i { transform: rotate(180deg); color: var(--rojo-rusteze); }
+        .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 8px; color: #000; }
+        .tag-urgente { background-color: var(--rojo-rusteze); color: #fff;}
+        .tag-proximo { background-color: var(--amarillo-rusteze); }
+        .tag-info { background-color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container" onclick="navigate('inicio')">
+            <i class="fa-solid fa-bolt"></i>
+            <div class="logo-text"><span class="rust">RUST</span><span class="eze">EZE</span></div>
+            <div class="logo-subtitle">VEHICLE MANAGER</div>
+        </div>
+        <button class="btn-primario">IR A LA APP</button>
+    </header>
+
+    <main>
+        <!-- ================= VISTA: INICIO / MENÚ PRINCIPAL ================= -->
+        <div id="view-inicio" class="view active">
+            <section class="hero">
+                <h2>Guía de uso de RustEze</h2>
+                <p>Organizá la información de tus vehículos y consultá su documentación, mantenimiento, kilometraje y gastos desde un mismo lugar.</p>
+                
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="buscador" placeholder="¿Qué necesitás saber? Ej: registro, documentos, service...">
+                    <div class="search-results" id="resultados"></div>
+                </div>
+            </section>
+
+            <section class="section-container">
+                <div class="grid-categorias">
+                    <div class="card" onclick="navigate('cuenta')">
+                        <i class="fa-solid fa-user-gear"></i> <h3>Cuenta e Inicio</h3> <p>Perfil, configuración y cómo usar la pantalla principal.</p>
+                    </div>
+                    <div class="card" onclick="navigate('vehiculos')">
+                        <i class="fa-solid fa-car"></i> <h3>Vehículos</h3> <p>Agregar, consultar y editar vehículos.</p>
+                    </div>
+                    <div class="card" onclick="navigate('documentacion')">
+                        <i class="fa-solid fa-file-lines"></i> <h3>Documentación</h3> <p>Seguros, VTV/RTO, patente y cédula verde.</p>
+                    </div>
+                    <div class="card" onclick="navigate('mantenimiento')">
+                        <i class="fa-solid fa-wrench"></i> <h3>Mantenimiento</h3> <p>Services y próximo mantenimiento.</p>
+                    </div>
+                    <div class="card" onclick="navigate('reparaciones')">
+                        <i class="fa-solid fa-hammer"></i> <h3>Reparaciones</h3> <p>Trabajos y reparaciones realizadas.</p>
+                    </div>
+                    <div class="card" onclick="navigate('kilometraje')">
+                        <i class="fa-solid fa-gauge-high"></i> <h3>Kilometraje</h3> <p>Actualización e historial.</p>
+                    </div>
+                    <div class="card" onclick="navigate('gastos')">
+                        <i class="fa-solid fa-money-bill-wave"></i> <h3>Gastos</h3> <p>Registro e historial de gastos.</p>
+                    </div>
+                    <div class="card" onclick="navigate('recordatorios')">
+                        <i class="fa-solid fa-bell"></i> <h3>Recordatorios</h3> <p>Alertas y estados urgentes o próximos.</p>
+                    </div>
+                    <div class="card" onclick="navigate('historial')">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <h3>Historial</h3> <p>Actividades generales del vehículo.</p>
+                    </div>
+                    <div class="card" onclick="navigate('transferencia')">
+                        <i class="fa-solid fa-right-left"></i> <h3>Transferencia</h3> <p>Transferencia de información a otro usuario.</p>
+                    </div>
+                    <div class="card" onclick="navigate('talleres')">
+                        <i class="fa-solid fa-map-location-dot"></i> <h3>Talleres y gomerías</h3> <p>Consultar establecimientos cercanos.</p>
+                    </div>
+                    <div class="card" style="border-color: var(--amarillo-rusteze);" onclick="navigate('faq')">
+                        <i class="fa-solid fa-circle-question" style="color: var(--blanco);"></i> <h3>Preguntas Frecuentes</h3> <p>Respuestas rápidas a las dudas más comunes.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: CUENTA E INICIO ================= -->
+        <div id="view-cuenta" class="view">
+            <div class="page-header"><h2>Cuenta e Inicio</h2><p>Accedé a tu cuenta y da tus primeros pasos en la app.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>1. Pantalla de Inicio</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">En la pantalla principal encontrás un saludo, el vehículo seleccionado y avisos sobre documentación y mantenimiento.</p>
+                    <ul class="bullet-list">
+                        <li>Seleccioná el vehículo que querés consultar.</li>
+                        <li>Revisá sus próximos recordatorios.</li>
+                        <li>Ingresá a Notificaciones para consultar los avisos.</li>
+                        <li>Accedé a las secciones del vehículo para ver documentación, services, reparaciones, etc.</li>
+                    </ul>
+                    <div class="info-box"><strong>Consejo:</strong> Si tenés varios vehículos, verificá cuál está seleccionado antes de consultar o registrar información.</div>
+                </div>
+
+                <div class="guia-box">
+                    <h3>2. Crear una cuenta</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Seleccioná "Crear nueva cuenta".</li>
+                        <li><strong>Paso 2:</strong> Completá: Nombre completo, Correo electrónico, Contraseña y Confirmación.</li>
+                        <li><strong>Paso 3:</strong> Presioná "Crear cuenta".</li>
+                    </ul>
+                </div>
+
+                <div class="guia-box">
+                    <h3>3. Iniciar y Cerrar sesión</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Para iniciar:</strong> Ingresá tu correo, escribí tu contraseña y presioná "Iniciar sesión".</li>
+                        <li><strong>Para cerrar:</strong> En tu Perfil, seleccioná "Cerrar sesión", especialmente si utilizás un dispositivo compartido.</li>
+                    </ul>
+                    <div class="info-box alert"><strong>Seguridad:</strong> No compartas tu contraseña y verificá que tu correo esté correctamente escrito.</div>
+                </div>
+
+                <div class="guia-box">
+                    <h3>4. Consultar el perfil</h3>
+                    <p style="color: var(--texto-secundario);">En Perfil aparecen tu nombre, correo electrónico y accesos a: Editar perfil, Editar vehículo, Notificaciones, Preferencias y Ayuda.</p>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: VEHÍCULOS ================= -->
+        <div id="view-vehiculos" class="view">
+            <div class="page-header"><h2>Vehículos</h2><p>Organizá los vehículos de tu cuenta y consultá sus datos.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>Agregar un vehículo</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Entrá en Gestión del vehículo.</li>
+                        <li><strong>Paso 2:</strong> Seleccioná Añadir vehículo.</li>
+                        <li><strong>Paso 3:</strong> Completá: Marca, Modelo, Año, Patente, Color y Transmisión.</li>
+                        <li><strong>Paso 4:</strong> Revisá la información y presioná Guardar vehículo.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Consultar y Editar</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Consultar:</strong> Desde Gestión del vehículo, seleccioná Detalles del vehículo. Allí podés consultar los datos registrados.</li>
+                        <li><strong>Editar:</strong> En Perfil encontrás la opción Editar vehículo, destinada a modificar su información.</li>
+                    </ul>
+                    <div class="info-box"><strong>Consejo:</strong> Mantené los datos actualizados para identificar correctamente cada vehículo de tu cuenta.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: DOCUMENTACIÓN ================= -->
+        <div id="view-documentacion" class="view">
+            <div class="page-header"><h2>Documentación</h2><p>Guardá y consultá los documentos importantes del vehículo.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>¿Qué reúne esta sección?</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 10px;">Los registros muestran información como el número del documento, fecha de vencimiento y su estado.</p>
+                    <ul class="bullet-list">
+                        <li>Seguro.</li>
+                        <li>VTV / RTO.</li>
+                        <li>Patente.</li>
+                        <li>Cédula verde.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Agregar un documento</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Entrá en Documentación y seleccioná Agregar documentos.</li>
+                        <li><strong>Paso 2:</strong> Elegí un archivo o arrastralo al área de carga.</li>
+                        <li><strong>Paso 3:</strong> Indicá el tipo de documento.</li>
+                        <li><strong>Paso 4:</strong> Revisá el nombre del archivo y agregá una nota si necesitás aclarar algo.</li>
+                        <li><strong>Paso 5:</strong> Presioná Guardar documento.</li>
+                    </ul>
+                    <div class="info-box"><strong>Archivos admitidos:</strong> Formatos PDF, JPG y PNG. Tamaño máximo: 10 MB por archivo.</div>
+                </div>
+                <div class="guia-box">
+                    <h3>Consultar el estado</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Vigente:</strong> El documento figura como vigente en la app.</li>
+                        <li><strong>Urgente:</strong> El registro requiere atención.</li>
+                    </ul>
+                    <div class="info-box alert"><strong>Importante:</strong> Guardá una versión legible y actualizada. No asumas que una copia cargada reemplaza la documentación exigida legalmente para circular.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: MANTENIMIENTO ================= -->
+        <div id="view-mantenimiento" class="view">
+            <div class="page-header"><h2>Services y Mantenimiento</h2><p>Llevá un registro de los mantenimientos realizados.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>Información de cada service</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Ejemplos: cambios de aceite, filtros, bujías, correa de distribución y líquido de frenos.</p>
+                    <ul class="bullet-list">
+                        <li>Tipo de service (menor o mayor).</li>
+                        <li>Fecha de realización y Kilometraje.</li>
+                        <li>Taller, Trabajos realizados y Costo.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Registrar y Consultar</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Registrar un service:</strong> Entrá en Services y seleccioná "Registrar Service" para iniciar la carga.</li>
+                        <li><strong>Consultar el próximo mantenimiento:</strong> Revisá el kilometraje previsto y la cantidad de kilómetros restantes que muestra la sección.</li>
+                    </ul>
+                    <div class="info-box alert"><strong>Importante:</strong> La estimación es una referencia. Seguí los intervalos y recomendaciones del fabricante o del taller, tanto por tiempo como por kilometraje.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: REPARACIONES ================= -->
+        <div id="view-reparaciones" class="view">
+            <div class="page-header"><h2>Reparaciones</h2><p>Consultá los arreglos y trabajos realizados en el vehículo.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>¿Qué muestra cada registro?</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Ejemplos: cambios de batería, pastillas de freno, reparaciones del escape, tren delantero y sistema de combustible.</p>
+                    <ul class="bullet-list">
+                        <li>Descripción de la reparación.</li>
+                        <li>Fecha y Kilometraje.</li>
+                        <li>Taller y Costo.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Registrar y Consultar</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Registrar reparación:</strong> Entrá en Reparaciones y seleccioná "Registrar información" para iniciar un nuevo registro.</li>
+                        <li><strong>Consultar trabajos:</strong> Revisá el listado para saber qué se reparó, cuándo se hizo y cuánto costó.</li>
+                    </ul>
+                    <div class="info-box"><strong>Consejo:</strong> Usá descripciones claras. Por ejemplo, “Reemplazo de pastillas de freno delanteras”, en lugar de “Arreglo de frenos”.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: KILOMETRAJE ================= -->
+        <div id="view-kilometraje" class="view">
+            <div class="page-header"><h2>Kilometraje</h2><p>Actualizá los kilómetros recorridos y consultá su evolución.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>¿Qué muestra esta sección?</h3>
+                    <ul class="bullet-list">
+                        <li>Kilometraje actual y fecha de actualización.</li>
+                        <li>Historial de registros.</li>
+                        <li>Kilometraje previsto para el próximo service y kilómetros restantes.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Actualizar el kilometraje</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Entrá en Kilometraje.</li>
+                        <li><strong>Paso 2:</strong> Seleccioná Actualizar kilometraje.</li>
+                        <li><strong>Paso 3:</strong> Ingresá el valor que marca el vehículo y la fecha.</li>
+                        <li><strong>Paso 4:</strong> Revisá y presioná Actualizar. (El nuevo kilometraje debe ser mayor al actual).</li>
+                    </ul>
+                    <div class="info-box"><strong>Historial:</strong> En "Historial de registros" podés ver los valores anteriores y sus fechas. ¡Actualizalo con frecuencia!</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: GASTOS ================= -->
+        <div id="view-gastos" class="view">
+            <div class="page-header"><h2>Gastos</h2><p>Registrá los gastos del vehículo y consultá los importes acumulados.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>¿Qué encontrás en esta sección?</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Las categorías visibles incluyen combustible, reparaciones, peajes y estacionamiento.</p>
+                    <ul class="bullet-list">
+                        <li><strong>Total histórico:</strong> importe acumulado en la app.</li>
+                        <li><strong>Este mes:</strong> importe correspondiente al mes indicado.</li>
+                        <li>Listado general de gastos registrados.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Registrar un gasto</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Entrá en Gastos y seleccioná "Registrar gasto".</li>
+                        <li><strong>Paso 2:</strong> Completá Concepto, Fecha, Monto y Método de pago.</li>
+                        <li><strong>Paso 3:</strong> Revisá la información y presioná "Guardar gasto".</li>
+                    </ul>
+                    <div class="info-box"><strong>Consejo:</strong> Describí el gasto de forma concreta, como “Carga completa de combustible” o “Peaje de ida y vuelta”.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: RECORDATORIOS ================= -->
+        <div id="view-recordatorios" class="view">
+            <div class="page-header"><h2>Notificaciones y Recordatorios</h2><p>Identificá los vencimientos y las tareas que requieren atención.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>Qué avisos podés encontrar</h3>
+                    <ul class="bullet-list">
+                        <li>Vencimiento del carnet de conducir o Seguro atrasado.</li>
+                        <li>Próximo service, Rotación de neumáticos, Alineación y balanceo.</li>
+                        <li>Estado de la patente o de la documentación.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Qué significa cada estado</h3>
+                    <ul class="bullet-list">
+                        <li><span class="tag tag-urgente">Urgente</span> Requiere atención prioritaria.</li>
+                        <li><span class="tag tag-proximo">Próximo</span> Señala una tarea o vencimiento que se aproxima.</li>
+                        <li><span class="tag tag-info">Info</span> Comunica un estado o una actualización.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Cómo usar los avisos</h3>
+                    <p style="color: var(--texto-secundario);">Leé el mensaje completo, revisá la fecha y vehículo, y consultá la sección relacionada para realizar la gestión.</p>
+                    <div class="info-box alert"><strong>Importante:</strong> También puede aparecer un aviso sobre una posible fuga de refrigerante. Una alerta de la app no reemplaza una revisión mecánica profesional.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: HISTORIAL ================= -->
+        <div id="view-historial" class="view">
+            <div class="page-header"><h2>Historial</h2><p>Consultá las actividades generales registradas en el vehículo.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>¿Qué reúne esta sección?</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Acontecimientos ordenados por fecha y agrupados por meses:</p>
+                    <ul class="bullet-list">
+                        <li>Actualizaciones de kilometraje.</li>
+                        <li>Services y Reparaciones.</li>
+                        <li>Cambios de piezas.</li>
+                        <li>Renovaciones y novedades de documentación.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Cómo consultarlo</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Seleccioná el vehículo, entrá en Historial, buscá el mes/fecha y leé la descripción.</p>
+                    <div class="info-box"><strong>Diferencia importante:</strong> El historial general reúne actividades; los historiales de *cada sección* (como Services o Gastos) muestran la información específica detallada con costos y talleres.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: TRANSFERENCIA ================= -->
+        <div id="view-transferencia" class="view">
+            <div class="page-header"><h2>Transferencia de Información</h2><p>Buscá otro usuario para transferir datos del vehículo.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>Iniciar una transferencia</h3>
+                    <ul class="pasos-lista">
+                        <li><strong>Paso 1:</strong> Entrá en Gestión del vehículo o Detalles.</li>
+                        <li><strong>Paso 2:</strong> Seleccioná Transferir vehículo.</li>
+                        <li><strong>Paso 3:</strong> Ingresá el correo o nombre de usuario del destinatario.</li>
+                        <li><strong>Paso 4:</strong> Revisá el usuario encontrado y seleccioná Transferir datos.</li>
+                        <li><strong>Paso 5:</strong> Leé la advertencia antes de aceptar.</li>
+                    </ul>
+                    <div class="info-box alert">
+                        <strong>Atención:</strong> Verificá cuidadosamente el destinatario. El diseño actual muestra el mensaje “Los datos se eliminarán permanentemente”. Confirmá este punto antes de realizar la operación.
+                    </div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: TALLERES ================= -->
+        <div id="view-talleres" class="view">
+            <div class="page-header"><h2>Talleres y Gomerías</h2><p>Consultá establecimientos para el cuidado de tu vehículo.</p></div>
+            <section class="section-container">
+                <div class="guia-box">
+                    <h3>Información disponible en "Cercanos"</h3>
+                    <ul class="bullet-list">
+                        <li>Nombre del establecimiento y Tipo de servicio.</li>
+                        <li>Dirección y Horario (cuando está informado).</li>
+                        <li>Botón "Ver" para más detalles.</li>
+                    </ul>
+                </div>
+                <div class="guia-box">
+                    <h3>Cómo usar esta sección</h3>
+                    <p style="color: var(--texto-secundario); margin-bottom: 15px;">Entrá en Cercanos, elegí Taller o Gomería, revisá los disponibles y seleccioná "Ver" en el que te interese.</p>
+                    <div class="info-box"><strong>Consejo:</strong> Antes de acercarte, confirmá el horario y si realizan el trabajo que necesitás. No se muestra una opción definida para reservar turnos desde la app.</div>
+                </div>
+                <button class="btn-volver" onclick="navigate('inicio')"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+        <!-- ================= VISTA: PREGUNTAS FRECUENTES (FAQ) ================= -->
+        <div id="view-faq" class="view">
+            <div class="page-header"><h2>Preguntas Frecuentes</h2><p>Encontrá respuestas rápidas a tus consultas.</p></div>
+            <section class="section-container">
+                
+                <h3 class="faq-category-title"><i class="fa-solid fa-car"></i> Sobre la app y los vehículos</h3>
+                <div class="faq-item"><div class="faq-pregunta">1. ¿Qué es RustEze? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>RustEze es una app para organizar la información de tus vehículos: documentación, services, reparaciones, kilometraje, gastos y recordatorios.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">2. ¿Puedo tener más de un vehículo en mi cuenta? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Sí. Podés agregar varios vehículos y consultar la información de cada uno por separado.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">3. ¿Cómo agrego un vehículo? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Gestión del vehículo, seleccioná Añadir vehículo, completá los datos y presioná Guardar vehículo.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">4. ¿Qué datos necesito para registrar mi vehículo? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Necesitás indicar la marca, el modelo, el año, la patente, el color y la transmisión.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">5. ¿Dónde consulto los datos de mi vehículo? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Seleccioná el vehículo y entrá en Gestión del vehículo → Detalles del vehículo.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">6. ¿Dónde encuentro la opción para editar mi vehículo? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Perfil encontrás la opción Editar vehículo.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-file-lines"></i> Documentación</h3>
+                <div class="faq-item"><div class="faq-pregunta">7. ¿Qué documentos puedo guardar? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>La sección contempla seguro, VTV/RTO, patente y cédula verde.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">8. ¿Cómo agrego un documento? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Documentación → Agregar documentos, seleccioná el archivo, indicá su tipo y presioná Guardar documento. También podés agregar una nota opcional.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">9. ¿Qué formatos y tamaños de archivo se admiten? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Podés cargar archivos PDF, JPG y PNG, de hasta 10 MB por archivo.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">10. ¿Dónde consulto los vencimientos de mis documentos? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Documentación, cada registro muestra su fecha de vencimiento cuando corresponde. Revisá también su estado y los avisos relacionados.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">11. ¿Qué significa que un documento aparezca como "Urgente"? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Significa que requiere atención. Revisá el detalle y la fecha para identificar qué necesitás regularizar.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">12. ¿Los documentos guardados reemplazan los exigidos para circular? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>No los consideres un reemplazo automático. Verificá qué documentación y formatos acepta la autoridad correspondiente.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-wrench"></i> Mantenimiento y reparaciones</h3>
+                <div class="faq-item"><div class="faq-pregunta">13. ¿Dónde veo los services realizados? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Services, dentro del Historial de services. Allí aparecen fechas, kilometraje, talleres, trabajos realizados y costos.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">14. ¿Cómo inicio el registro de un service? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Services y seleccioná Registrar Service.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">15. ¿Dónde consulto cuándo corresponde el próximo service? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Services y Kilometraje aparece el kilometraje previsto para el próximo mantenimiento y los kilómetros restantes. Usá esa estimación como referencia.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">16. ¿Cuál es la diferencia entre un service y una reparación? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Un service es un mantenimiento periódico, como cambiar aceite y filtros. Una reparación corrige una falla o reemplaza una pieza dañada.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">17. ¿Dónde registro y consulto las reparaciones? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Reparaciones para consultar trabajos. Para iniciar un registro, seleccioná Registrar información.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-gauge-high"></i> Kilometraje</h3>
+                <div class="faq-item"><div class="faq-pregunta">18. ¿Cómo actualizo el kilometraje? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Kilometraje → Actualizar kilometraje, ingresá el nuevo valor y la fecha, y presioná Actualizar.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">19. ¿Por qué no puedo ingresar un kilometraje menor al actual? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>La app indica que el nuevo kilometraje debe ser mayor al registrado. Revisá que estés cargando el valor correcto y en el vehículo correspondiente.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">20. ¿Puedo consultar los kilometrajes anteriores? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Sí. En Kilometraje → Historial de registros aparecen los valores anteriores y sus fechas.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-money-bill-wave"></i> Gastos</h3>
+                <div class="faq-item"><div class="faq-pregunta">21. ¿Cómo registro un gasto? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Gastos → Registrar gasto, completá el concepto, fecha, monto y método de pago, y presioná Guardar gasto.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">22. ¿Qué tipos de gastos aparecen en la app? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entre las categorías visibles están combustible, reparaciones, peajes y estacionamiento.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">23. ¿Dónde consulto cuánto gasté? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Gastos encontrás el total histórico, el total del mes y el listado de gastos registrados.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-bell"></i> Recordatorios e historial</h3>
+                <div class="faq-item"><div class="faq-pregunta">24. ¿Qué significa cada estado de las notificaciones? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Urgente señala una situación prioritaria; Próximo, una tarea que se aproxima; e Info, un estado o actualización.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">25. ¿La app puede diagnosticar una falla mecánica? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>No tomes los avisos como diagnóstico confirmado. Si aparece una advertencia mecánica, consultá con un taller.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">26. ¿Qué información encuentro en el historial general? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Encontrás actividades registradas por fecha y mes, como services, reparaciones, actualizaciones de kilometraje y novedades de documentación.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-right-left"></i> Transferencia y talleres</h3>
+                <div class="faq-item"><div class="faq-pregunta">27. ¿Cómo inicio la transferencia a otro usuario? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Seleccioná Transferir vehículo, buscá al destinatario y verificá. Revisá la advertencia de eliminación de datos antes de confirmar.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">28. ¿Dónde encuentro talleres y gomerías? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>En Cercanos, elegí Taller o Gomería. Podés consultar nombres, direcciones, horarios y seleccionar Ver para más info.</div></div>
+
+                <h3 class="faq-category-title"><i class="fa-solid fa-user-gear"></i> Cuenta y ayuda</h3>
+                <div class="faq-item"><div class="faq-pregunta">29. ¿Cómo creo una cuenta e inicio sesión? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Seleccioná Crear nueva cuenta, completá los datos y presioná Crear. Para ingresar, usá tu correo y contraseña.</div></div>
+                <div class="faq-item"><div class="faq-pregunta">30. ¿Dónde busco ayuda si tengo un problema? <i class="fa-solid fa-chevron-down"></i></div><div class="faq-respuesta"><br>Entrá en Perfil → Ayuda y elegí la categoría. También aparece Contactanos. Explicá tu problema sin compartir contraseñas.</div></div>
+
+                <button class="btn-volver" onclick="navigate('inicio')" style="margin-top: 40px;"><i class="fa-solid fa-arrow-left"></i> Volver a categorías</button>
+            </section>
+        </div>
+
+    </main>
+
+    <script>
+        // Lógica de Navegación (SPA)
+        function navigate(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            document.getElementById('buscador').value = '';
+            document.getElementById('resultados').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Lógica del Acordeón FAQ
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const pregunta = item.querySelector('.faq-pregunta');
+            pregunta.addEventListener('click', () => {
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) otherItem.classList.remove('active');
+                });
+                item.classList.toggle('active');
+            });
+        });
+
+        // Buscador Inteligente
+        const searchIndex = [
+            { terms: ["cuenta", "crear cuenta", "iniciar sesion", "cerrar sesion", "perfil", "inicio"], view: "cuenta", icon: "fa-user-gear", title: "Gestión de Cuenta", subtitle: "En Cuenta e Inicio" },
+            { terms: ["vehiculo", "agregar auto", "moto", "editar vehiculo", "marca", "modelo"], view: "vehiculos", icon: "fa-car", title: "Gestión de Vehículos", subtitle: "En Vehículos" },
+            { terms: ["documento", "seguro", "vtv", "rto", "cedula", "patente"], view: "documentacion", icon: "fa-file-lines", title: "Documentación del Vehículo", subtitle: "En Documentación" },
+            { terms: ["service", "mantenimiento", "aceite", "filtro", "correa", "proximo service"], view: "mantenimiento", icon: "fa-wrench", title: "Services y Mantenimiento", subtitle: "En Mantenimiento" },
+            { terms: ["reparacion", "arreglo", "bateria", "freno", "escape"], view: "reparaciones", icon: "fa-hammer", title: "Reparaciones", subtitle: "En Reparaciones" },
+            { terms: ["kilometro", "actualizar", "km", "tablero"], view: "kilometraje", icon: "fa-gauge-high", title: "Kilometraje", subtitle: "En Kilometraje" },
+            { terms: ["gasto", "dinero", "combustible", "peaje", "pago"], view: "gastos", icon: "fa-money-bill-wave", title: "Registro de Gastos", subtitle: "En Gastos" },
+            { terms: ["recordatorio", "aviso", "notificacion", "urgente"], view: "recordatorios", icon: "fa-bell", title: "Recordatorios", subtitle: "En Recordatorios" },
+            { terms: ["historial", "actividad", "pasado"], view: "historial", icon: "fa-clock-rotate-left", title: "Historial General", subtitle: "En Historial" },
+            { terms: ["transferencia", "transferir", "vender", "otro usuario"], view: "transferencia", icon: "fa-right-left", title: "Transferencia de datos", subtitle: "En Transferencia" },
+            { terms: ["taller", "gomeria", "mecanico", "cercano"], view: "talleres", icon: "fa-map-location-dot", title: "Talleres Cercanos", subtitle: "En Talleres y Gomerías" },
+            { terms: ["pregunta", "duda", "ayuda", "faq", "como hago", "contacto"], view: "faq", icon: "fa-circle-question", title: "Preguntas Frecuentes", subtitle: "En FAQ" }
+        ];
+
+        const buscador = document.getElementById('buscador');
+        const resultadosDiv = document.getElementById('resultados');
+
+        buscador.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            resultadosDiv.innerHTML = '';
+            
+            if (query.length > 2) {
+                const matches = searchIndex.filter(item => item.terms.some(term => term.includes(query) || query.includes(term)));
+                
+                if (matches.length > 0) {
+                    matches.forEach(match => {
+                        const div = document.createElement('div');
+                        div.className = 'search-item';
+                        div.innerHTML = `<i class="fa-solid ${match.icon}"></i><div><strong>${match.title}</strong><span>${match.subtitle}</span></div>`;
+                        div.onclick = () => navigate(match.view);
+                        resultadosDiv.appendChild(div);
+                    });
+                    resultadosDiv.style.display = 'block';
+                } else {
+                    resultadosDiv.innerHTML = `<div class="search-item" onclick="navigate('faq')"><div><strong>¿No encontrás lo que buscás?</strong><span>Revisá las Preguntas Frecuentes</span></div></div>`;
+                    resultadosDiv.style.display = 'block';
+                }
+            } else {
+                resultadosDiv.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!buscador.contains(e.target) && !resultadosDiv.contains(e.target)) {
+                resultadosDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
