@@ -17,6 +17,7 @@
             --gris-oscuro: #1E1E1E;
             --blanco: #FFFFFF;
             --texto-secundario: #A0A0A0;
+            --verde-info: #28a745; /* Nuevo color verde para Info */
             --fondo-degradado: linear-gradient(180deg, #000000 0%, #000000 40%, #5a0000 100%);
         }
 
@@ -118,7 +119,7 @@
         }
         .btn-volver:hover { background-color: var(--gris-oscuro); color: var(--blanco); border-color: var(--blanco); }
 
-        /* --- ESTILOS FAQ --- */
+        /* --- ESTILOS FAQ Y ETIQUETAS --- */
         .faq-category-title { font-size: 22px; color: var(--amarillo-rusteze); margin: 40px 0 20px 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .faq-item { background-color: var(--gris-oscuro); margin-bottom: 15px; border-radius: 8px; border: 1px solid #2a2a2a; overflow: hidden; }
         .faq-pregunta { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; transition: background 0.3s; }
@@ -126,10 +127,11 @@
         .faq-respuesta { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; color: var(--texto-secundario); font-weight: 300; line-height: 1.6; }
         .faq-item.active .faq-respuesta { padding: 0 20px 20px 20px; max-height: 500px; }
         .faq-item.active .faq-pregunta i { transform: rotate(180deg); color: var(--rojo-rusteze); }
+        
         .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 8px; color: #000; }
         .tag-urgente { background-color: var(--rojo-rusteze); color: #fff;}
         .tag-proximo { background-color: var(--amarillo-rusteze); }
-        .tag-info { background-color: #fff; }
+        .tag-info { background-color: var(--verde-info); color: #fff; } /* Aplicado el cambio a verde */
 
     </style>
 </head>
@@ -141,7 +143,8 @@
             <div class="logo-text"><span class="rust">RUST</span><span class="eze">EZE</span></div>
             <div class="logo-subtitle">VEHICLE MANAGER</div>
         </div>
-        <button class="btn-primario">IR A LA APP</button>
+        <!-- Botón modificado para redirigir a Figma en una nueva pestaña -->
+        <button class="btn-primario" onclick="window.open('https://www.figma.com/proto/gDeEsOnG5lOIt2HZGNaA1t/tp-fede-andrada?node-id=0-1&t=uB9AxNVjYt9EnK46-1', '_blank')">IR A LA APP</button>
     </header>
 
     <main>
